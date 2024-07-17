@@ -26,9 +26,11 @@ async function connectToMongoDB() {
 
     const db = client.db("users");
     const userCollection = db.collection("allUsers");
+    const dbTwo = client.db("users");
+    const paymentCollection = db.collection("paymentHistory");
 
    app.post("/user", async (req, res) => {
-     const { name, email, password, imageUrl } = req.body;
+     const { name, email, password, imageUrl, role } = req.body;
 
      try {
        const user = await userCollection.findOne({ email });
@@ -58,11 +60,11 @@ async function connectToMongoDB() {
        const result = await userCollection.insertOne({
          name,
          token,
+         role,
          email,
          imageUrl,
          password: hashedPassword,
          status: "Pending",
-         role: "user",
          RegiDate: new Date(),
        });
 
@@ -103,13 +105,35 @@ async function connectToMongoDB() {
 
    app.get("/userInfo/:token", async (req, res) => {
      const { token } = req.params;
-     console.log(token);
+     console.log("tik tik tik" , token);
      const filter = { token: token };
      const item = await userCollection.findOne(filter);
      console.log(item);
      res.send(item);
    });
 
+   app.post('/payment', async(req, res)=>{
+    const item = req.body;
+    const result = await paymentCollection.insertOne(item);
+    res.send(result)
+   })
+
+  app.get("/payHistory/:token", async (req, res) => {
+    try {
+      const token = req.params.token; // Correctly extract the token
+      console.log("Token:", token);
+
+      const query = { token: token };
+      const result = await paymentCollection.find(query).toArray();
+
+      res.status(200).send(result);
+    } catch (error) {
+      console.error(error);
+      res
+        .status(500)
+        .send({ message: "An error occurred while fetching payment history." });
+    }
+  });
 
 
 
