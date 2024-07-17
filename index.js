@@ -50,16 +50,15 @@ async function connectToMongoDB() {
       console.log(token);
 
        // Respond with user data and token
-       res.status(200).json({
-         message: "Login successful",
-         token
-       });
+      //  res.status(200).json({
+      //    message: "Login successful",
+      //    token
+      //  });
 
        const hashedPassword = await bcrypt.hash(password, 10);
 
        const result = await userCollection.insertOne({
          name,
-         token,
          role,
          email,
          imageUrl,
@@ -103,10 +102,10 @@ async function connectToMongoDB() {
       }
     });
 
-   app.get("/userInfo/:token", async (req, res) => {
-     const { token } = req.params;
-     console.log("tik tik tik" , token);
-     const filter = { token: token };
+   app.get("/userInfo/:email", async (req, res) => {
+     const { email } = req.params;
+     console.log("tik tik tik" , email);
+     const filter = { email: email };
      const item = await userCollection.findOne(filter);
      console.log(item);
      res.send(item);
@@ -118,12 +117,17 @@ async function connectToMongoDB() {
     res.send(result)
    })
 
-  app.get("/payHistory/:token", async (req, res) => {
-    try {
-      const token = req.params.token; // Correctly extract the token
-      console.log("Token:", token);
+   app.get('/allUser', async(req, res)=>{
+    const alluser = await userCollection.find().toArray();
+    res.send(alluser)
+   })
 
-      const query = { token: token };
+  app.get("/payHistory/:email", async (req, res) => {
+    try {
+      const email = req.params.email; // Correctly extract the token
+      console.log("Token:", email);
+
+      const query = { email: email };
       const result = await paymentCollection.find(query).toArray();
 
       res.status(200).send(result);
